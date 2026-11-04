@@ -40,7 +40,7 @@ npm test
 |---|---|
 | **Slab** | length, width, thickness (m), clear cover (cm), one way / two way, bar dia for the shorter and longer span (mm), spacing (m), optional cranked bars |
 | **Beam** | length, width, depth (m), cover, top bar dia + number, bottom bar dia + number, stirrup dia (mm) + spacing (m), number of beams |
-| **Pillar / Column** | rectangular or circular, size, height, clear cover (cm), number + dia of bars, stirrup dia + spacing, number of columns |
+| **Pillar / Column** | rectangular (width × length) or circular (diameter), height, clear cover (cm), number + dia of bars, stirrup dia + spacing, number of columns |
 
 Each result shows:
 - the total steel in kg and tonnes, and the steel weight for every bar diameter
