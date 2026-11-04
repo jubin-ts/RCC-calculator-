@@ -292,6 +292,69 @@
       <div id="savedList" class="no-print"></div>
     </section>
 
+    <!-- ================= PROJECTS (BOQ) ================= -->
+    <section class="view" id="view-boq" aria-labelledby="h-boq">
+      <h2 id="h-boq">Project Estimates</h2>
+      <p class="hint">Make an item-wise estimate (bill of quantities) for each project. Enter the number and the length, width and height/depth for each item. The quantity, deductions, amount and grand total are worked out for you.</p>
+
+      <div class="card no-print" id="boqBar">
+        <label><span>Project</span><select id="boqSelect"></select></label>
+        <div class="result-actions">
+          <button type="button" class="btn primary small" data-boq="new">＋ New project</button>
+          <button type="button" class="btn ghost small" data-boq="dup">Duplicate</button>
+          <button type="button" class="btn ghost small" data-boq="sample">Load sample</button>
+          <button type="button" class="btn ghost small" data-boq="export">Save file</button>
+          <button type="button" class="btn ghost small" data-boq="import">Open file</button>
+          <button type="button" class="btn danger small" data-boq="delete">Delete</button>
+        </div>
+        <input type="file" id="boqFile" accept=".json,application/json" hidden />
+      </div>
+
+      <form class="card no-print" id="boqDetails" autocomplete="off">
+        <details>
+          <summary>Project details</summary>
+          <div class="grid2">
+            <label><span>Project name</span><input type="text" name="p_name" /></label>
+            <label><span>Client name</span><input type="text" name="p_client" /></label>
+            <label><span>Place</span><input type="text" name="p_place" /></label>
+            <label><span>Type of work</span><input type="text" name="p_workType" placeholder="e.g. Residential" /></label>
+            <label><span>Date</span><input type="date" name="p_date" /></label>
+            <label><span>Estimate no.</span><input type="text" name="p_estNo" /></label>
+            <label class="span2"><span>Estimate title</span><input type="text" name="p_title" /></label>
+            <label><span>GST / tax <em>%</em></span><input type="number" name="p_taxPct" min="0" step="any" inputmode="decimal" placeholder="0" /></label>
+          </div>
+        </details>
+        <details>
+          <summary>Letterhead (all projects)</summary>
+          <div class="grid2">
+            <label><span>Company / firm name</span><input type="text" name="c_name" /></label>
+            <label><span>Engineer name</span><input type="text" name="c_engineer" /></label>
+            <label class="span2"><span>Address &amp; phone</span><input type="text" name="c_address" /></label>
+          </div>
+        </details>
+      </form>
+
+      <div id="boqItems" class="no-print"></div>
+      <div class="actions no-print boq-add" id="boqAdd">
+        <button type="button" class="btn primary" data-add="item">＋ Add item</button>
+        <button type="button" class="btn ghost" data-add="ls">＋ Lump sum</button>
+        <button type="button" class="btn ghost" data-add="heading">＋ Heading</button>
+      </div>
+      <div id="boqSummary"></div>
+      <div id="boqPrint" class="print-only boq-sheet"></div>
+
+      <details class="card info no-print">
+        <summary>How it is calculated</summary>
+        <ul>
+          <li>Quantity of a row = Nos × L × W × H. Leave a dimension empty to skip it: L × H gives the area of a wall, L × W × D gives a volume.</li>
+          <li>Type a value in <b>Qty</b> to enter the quantity directly (e.g. 2800 sq ft).</li>
+          <li>Rows marked <b>−</b> are deductions (doors, windows, ventilators) and are subtracted from the total.</li>
+          <li>Amount = net quantity × rate. A lump-sum (LS) item adds its amount as it is.</li>
+          <li>Total = sum of all amounts (+ GST if entered). Projects are saved on this device; use <b>Save file</b> to back up or send a project.</li>
+        </ul>
+      </details>
+    </section>
+
     <!-- ================= TOOLS ================= -->
     <section class="view" id="view-tools" aria-labelledby="h-tools">
       <h2 id="h-tools">Tools &amp; Settings</h2>
@@ -332,12 +395,15 @@
     <button type="button" class="active" data-view="concrete"><span class="ico" aria-hidden="true">▦</span>Concrete</button>
     <button type="button" data-view="steel"><span class="ico" aria-hidden="true">⫼</span>TMT Steel</button>
     <button type="button" data-view="saved"><span class="ico" aria-hidden="true">☰</span>Estimate<span class="badge" id="savedBadge" hidden>0</span></button>
+    <button type="button" data-view="boq"><span class="ico" aria-hidden="true">▤</span>Projects</button>
     <button type="button" data-view="tools"><span class="ico" aria-hidden="true">⚙</span>Tools</button>
   </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/calc.js"></script>
+  <script src="js/boq.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/projects.js"></script>
 </body>
 </html>
