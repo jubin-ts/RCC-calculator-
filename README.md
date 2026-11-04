@@ -51,8 +51,11 @@ Each result shows:
 - **IS 456 checks**: one-way vs two-way slab (Ly/Lx), maximum bar and stirrup spacing, column steel % (0.8 to 4 %), minimum number of bars, and tie diameter
 
 ### Extra features
-- **Project estimate**: add any result to a project to get a combined bill of materials (cement, sand, aggregate, water, and steel by diameter). You can export it to **CSV**, share it, or print/save it as PDF.
-- **Cost estimate**: enter local rates (cement per bag, sand and aggregate per cft, steel per kg) and every result shows the cost
+- **Project estimate**: tap **＋ Add to estimate** on any result to build a combined bill of materials. It shows totals for cement, sand, aggregate, water, concrete, and steel by diameter, plus a breakdown item by item.
+  - **Open / edit** a saved item, change it, then tap **Update estimate item**, or tap **Add as new item** to keep both.
+  - Rename items (for example "Ground floor slab") or delete them.
+  - Export the estimate to **CSV**, share it, or **print / save it as a PDF**.
+- **Cost estimate**: enter local rates (cement per bag, sand and aggregate per cft, steel per kg) under **Material rates** on the Estimate tab. Every result and the estimate then show the cost.
 - **Share / Copy** results, which is handy for WhatsApp
 - **Unit converter**: length, area (including gunta and acre), volume (m³, cft, brass, litre) and weight
 - TMT bar weight chart and a nominal mix reference table
