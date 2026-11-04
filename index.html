@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>RCC Calculator</title>
+  <meta name="description" content="Concrete material and TMT steel calculator for slabs, beams and columns." />
+  <meta name="theme-color" content="#1f5f8b" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon.svg" alt="" width="32" height="32" />
+      <div>
+        <h1>RCC Calculator</h1>
+        <p class="tagline">Concrete &amp; TMT steel estimator</p>
+      </div>
+    </div>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">◐</button>
+  </header>
+
+  <main id="app">
+    <!-- ================= CONCRETE ================= -->
+    <section class="view active" id="view-concrete" aria-labelledby="h-concrete">
+      <h2 id="h-concrete">Concrete Calculator</h2>
+      <p class="hint">Find cement (bags), sand &amp; aggregate (cft) and water (litres) for a given volume of concrete.</p>
+
+      <form id="form-concrete" class="card calc-form" novalidate>
+        <fieldset>
+          <legend>Concrete grade</legend>
+          <div class="chips" role="radiogroup">
+            <label class="chip"><input type="radio" name="grade" value="M25" /><span>M25<small>1:1:2</small></span></label>
+            <label class="chip"><input type="radio" name="grade" value="M20" checked /><span>M20<small>1:1.5:3</small></span></label>
+            <label class="chip"><input type="radio" name="grade" value="M15" /><span>M15<small>1:2:4</small></span></label>
+            <label class="chip"><input type="radio" name="grade" value="M10" /><span>M10<small>1:3:6</small></span></label>
+            <label class="chip"><input type="radio" name="grade" value="CUSTOM" /><span>Custom<small>ratio</small></span></label>
+          </div>
+          <div class="grid3 custom-ratio" hidden>
+            <label>Cement<input type="number" name="rc" value="1" min="0" step="any" inputmode="decimal" /></label>
+            <label>Sand<input type="number" name="rs" value="1.5" min="0" step="any" inputmode="decimal" /></label>
+            <label>Aggregate<input type="number" name="ra" value="3" min="0" step="any" inputmode="decimal" /></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Volume of concrete</legend>
+          <div class="seg" role="tablist">
+            <label><input type="radio" name="volMode" value="direct" checked /><span>Enter volume</span></label>
+            <label><input type="radio" name="volMode" value="dims" /><span>From dimensions</span></label>
+          </div>
+          <div class="vol-direct">
+            <label><span>Concrete volume <em>m³</em></span>
+              <input type="number" name="volume" min="0" step="any" inputmode="decimal" placeholder="e.g. 10" required />
+            </label>
+          </div>
+          <div class="vol-dims grid2" hidden>
+            <label><span>Length <em>m</em></span><input type="number" name="dl" min="0" step="any" inputmode="decimal" /></label>
+            <label><span>Width <em>m</em></span><input type="number" name="dw" min="0" step="any" inputmode="decimal" /></label>
+            <label><span>Depth / thickness <em>m</em></span><input type="number" name="dd" min="0" step="any" inputmode="decimal" /></label>
+            <label><span>Quantity <em>nos</em></span><input type="number" name="dq" min="1" step="1" value="1" inputmode="numeric" /></label>
+            <p class="computed span2" data-out="dimVol"></p>
+          </div>
+        </fieldset>
+
+        <details class="advanced">
+          <summary>Advanced options</summary>
+          <div class="grid2">
+            <label>Water-cement ratio<input type="number" name="wc" step="0.01" min="0" inputmode="decimal" placeholder="auto" /></label>
+            <label><span>Wastage <em>%</em></span><input type="number" name="wastage" value="0" min="0" step="any" inputmode="decimal" /></label>
+            <label>Dry volume factor<input type="number" name="dryFactor" value="1.54" min="1" step="0.01" inputmode="decimal" /></label>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Calculate</button>
+          <button type="reset" class="btn ghost">Reset</button>
+        </div>
+      </form>
+      <div class="result" id="result-concrete" aria-live="polite"></div>
+
+      <details class="card info">
+        <summary>How it is calculated</summary>
+        <ul>
+          <li>Dry volume = wet volume × 1.54 (accounts for voids &amp; bulking).</li>
+          <li>Cement = dry volume × (cement part ÷ sum of ratio) × 1440 kg/m³ ÷ 50 kg per bag.</li>
+          <li>Sand / aggregate = dry volume × (part ÷ sum of ratio) × 35.3147 cft/m³.</li>
+          <li>Water = cement (kg) × water-cement ratio (M25 0.45, M20 0.50, M15 0.55, M10 0.60).</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- ================= STEEL ================= -->
+    <section class="view" id="view-steel" aria-labelledby="h-steel">
+      <h2 id="h-steel">TMT Bar Calculator</h2>
+      <div class="seg big" role="tablist" id="steelTabs">
+        <button type="button" class="active" data-steel="slab">Slab</button>
+        <button type="button" data-steel="beam">Beam</button>
+        <button type="button" data-steel="column">Pillar / Column</button>
+      </div>
+
+      <!-- SLAB -->
+      <div class="steel-pane active" id="pane-slab">
+        <form id="form-slab" class="card calc-form" novalidate>
+          <fieldset>
+            <legend>Slab size</legend>
+            <div class="grid2">
+              <label><span>Length of slab <em>m</em></span><input type="number" name="length" min="0" step="any" inputmode="decimal" placeholder="e.g. 5" required /></label>
+              <label><span>Width of slab <em>m</em></span><input type="number" name="width" min="0" step="any" inputmode="decimal" placeholder="e.g. 4" required /></label>
+              <label><span>Thickness of slab <em>m</em></span><input type="number" name="thickness" min="0" step="any" inputmode="decimal" value="0.125" required /></label>
+              <label><span>Clear cover <em>cm</em></span><input type="number" name="cover" min="0" step="any" inputmode="decimal" value="2" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Slab type</legend>
+            <div class="seg">
+              <label><input type="radio" name="type" value="one" checked /><span>One way</span></label>
+              <label><input type="radio" name="type" value="two" /><span>Two way</span></label>
+            </div>
+            <p class="hint small" data-out="slabTypeHint"></p>
+          </fieldset>
+          <fieldset>
+            <legend>Reinforcement</legend>
+            <div class="grid2">
+              <label><span>Dia. of bar – shorter span <em>mm</em></span><select name="diaShort" data-dias="10"></select></label>
+              <label><span>Spacing – shorter span bars <em>m</em></span><input type="number" name="spacingShort" min="0" step="any" inputmode="decimal" value="0.15" required /></label>
+              <label><span>Dia. of bar – longer span <em>mm</em></span><select name="diaLong" data-dias="8"></select></label>
+              <label><span>Spacing – longer span bars <em>m</em></span><input type="number" name="spacingLong" min="0" step="any" inputmode="decimal" value="0.15" /></label>
+            </div>
+          </fieldset>
+          <details class="advanced">
+            <summary>Advanced options</summary>
+            <div class="grid2">
+              <label class="check span2"><input type="checkbox" name="crank" /> Alternate bars cranked (bent-up) at both ends</label>
+              <label><span>Extra length per bar <em>m</em></span><input type="number" name="extra" value="0" min="0" step="any" inputmode="decimal" title="Anchorage into beams / laps" /></label>
+              <label><span>Steel wastage <em>%</em></span><input type="number" name="wastage" value="0" min="0" step="any" inputmode="decimal" /></label>
+              <label class="span2"><span>Concrete grade (for concrete quantity)</span><select name="grade" data-grades="M20"></select></label>
+            </div>
+          </details>
+          <div class="actions">
+            <button type="submit" class="btn primary">Calculate</button>
+            <button type="reset" class="btn ghost">Reset</button>
+          </div>
+        </form>
+        <div class="result" id="result-slab" aria-live="polite"></div>
+        <details class="card info">
+          <summary>How it is calculated</summary>
+          <ul>
+            <li>Main bars run along the <b>shorter span</b>; number = (longer span − 2 × cover) ÷ spacing + 1.</li>
+            <li>Bars along the longer span: number = (shorter span − 2 × cover) ÷ spacing + 1. They are distribution bars in a one-way slab and main bars in a two-way slab.</li>
+            <li>Cutting length = span − 2 × cover + extra length. Cranked bars add 2 × 0.42 D (D = slab thickness − 2 × cover − bar dia).</li>
+            <li>Weight = total length × d²/162 kg/m.</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- BEAM -->
+      <div class="steel-pane" id="pane-beam" hidden>
+        <form id="form-beam" class="card calc-form" novalidate>
+          <fieldset>
+            <legend>Beam size</legend>
+            <div class="grid2">
+              <label><span>Length of beam <em>m</em></span><input type="number" name="length" min="0" step="any" inputmode="decimal" placeholder="e.g. 4" required /></label>
+              <label><span>Width of beam <em>m</em></span><input type="number" name="width" min="0" step="any" inputmode="decimal" value="0.23" required /></label>
+              <label><span>Depth of beam <em>m</em></span><input type="number" name="depth" min="0" step="any" inputmode="decimal" value="0.45" required /></label>
+              <label><span>Clear cover <em>cm</em></span><input type="number" name="cover" min="0" step="any" inputmode="decimal" value="2.5" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Main reinforcement</legend>
+            <div class="grid2">
+              <label><span>Dia. of top reinforcement <em>mm</em></span><select name="topDia" data-dias="12"></select></label>
+              <label><span>Number of top bars <em>nos</em></span><input type="number" name="topCount" min="0" step="1" inputmode="numeric" value="2" /></label>
+              <label><span>Dia. of bottom reinforcement <em>mm</em></span><select name="bottomDia" data-dias="16"></select></label>
+              <label><span>Number of bottom bars <em>nos</em></span><input type="number" name="bottomCount" min="0" step="1" inputmode="numeric" value="3" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Stirrups</legend>
+            <div class="grid2">
+              <label><span>Dia. of stirrups <em>mm</em></span><select name="stirrupDia" data-dias="8"></select></label>
+              <label><span>Spacing of stirrups <em>m</em></span><input type="number" name="stirrupSpacing" min="0" step="any" inputmode="decimal" value="0.15" required /></label>
+            </div>
+          </fieldset>
+          <details class="advanced">
+            <summary>Advanced options</summary>
+            <div class="grid2">
+              <label><span>Number of beams <em>nos</em></span><input type="number" name="qty" min="1" step="1" value="1" inputmode="numeric" /></label>
+              <label><span>Extra length per main bar <em>m</em></span><input type="number" name="extra" value="0" min="0" step="any" inputmode="decimal" title="Development length / anchorage / laps" /></label>
+              <label><span>Steel wastage <em>%</em></span><input type="number" name="wastage" value="0" min="0" step="any" inputmode="decimal" /></label>
+              <label>Concrete grade<select name="grade" data-grades="M20"></select></label>
+            </div>
+          </details>
+          <div class="actions">
+            <button type="submit" class="btn primary">Calculate</button>
+            <button type="reset" class="btn ghost">Reset</button>
+          </div>
+        </form>
+        <div class="result" id="result-beam" aria-live="polite"></div>
+        <details class="card info">
+          <summary>How it is calculated</summary>
+          <ul>
+            <li>Main bar length = beam length − 2 × cover + extra length (anchorage / development length).</li>
+            <li>Stirrup cutting length = 2(a + b) + 2 × 10d (135° hooks) − 3 × 2d (90° bends) − 2 × 3d (135° bends), where a = B − 2c − d and b = D − 2c − d.</li>
+            <li>Number of stirrups = (length − 2 × cover) ÷ spacing + 1.</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- COLUMN -->
+      <div class="steel-pane" id="pane-column" hidden>
+        <form id="form-column" class="card calc-form" novalidate>
+          <fieldset>
+            <legend>Pillar / column size</legend>
+            <div class="seg">
+              <label><input type="radio" name="shape" value="rect" checked /><span>Rectangular</span></label>
+              <label><input type="radio" name="shape" value="circle" /><span>Circular</span></label>
+            </div>
+            <div class="grid2">
+              <label><span><span data-shape-label>Width</span> <em>m</em></span><input type="number" name="width" min="0" step="any" inputmode="decimal" value="0.23" required /></label>
+              <label class="rect-only"><span>Depth <em>m</em></span><input type="number" name="depth" min="0" step="any" inputmode="decimal" value="0.3" /></label>
+              <label><span>Height of column <em>m</em></span><input type="number" name="height" min="0" step="any" inputmode="decimal" placeholder="e.g. 3" required /></label>
+              <label><span>Clear cover <em>cm</em></span><input type="number" name="cover" min="0" step="any" inputmode="decimal" value="4" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Vertical bars</legend>
+            <div class="grid2">
+              <label><span>Number of bars <em>nos</em></span><input type="number" name="barCount" min="0" step="1" inputmode="numeric" value="4" required /></label>
+              <label><span>Dia. of bars <em>mm</em></span><select name="barDia" data-dias="12"></select></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Stirrups / ties</legend>
+            <div class="grid2">
+              <label><span>Dia. of stirrups <em>mm</em></span><select name="stirrupDia" data-dias="8"></select></label>
+              <label><span>Spacing of stirrups <em>m</em></span><input type="number" name="stirrupSpacing" min="0" step="any" inputmode="decimal" value="0.15" required /></label>
+            </div>
+          </fieldset>
+          <details class="advanced">
+            <summary>Advanced options</summary>
+            <div class="grid2">
+              <label><span>Number of columns <em>nos</em></span><input type="number" name="qty" min="1" step="1" value="1" inputmode="numeric" /></label>
+              <label><span>Extra length per bar <em>m</em></span><input type="number" name="extra" value="0" min="0" step="any" inputmode="decimal" title="Lap length / footing anchorage" /></label>
+              <label><span>Steel wastage <em>%</em></span><input type="number" name="wastage" value="0" min="0" step="any" inputmode="decimal" /></label>
+              <label>Concrete grade<select name="grade" data-grades="M20"></select></label>
+            </div>
+          </details>
+          <div class="actions">
+            <button type="submit" class="btn primary">Calculate</button>
+            <button type="reset" class="btn ghost">Reset</button>
+          </div>
+        </form>
+        <div class="result" id="result-column" aria-live="polite"></div>
+        <details class="card info">
+          <summary>How it is calculated</summary>
+          <ul>
+            <li>Vertical bar length = column height + extra length (lap / footing anchorage).</li>
+            <li>Rectangular tie = 2(a + b) + 8d, with a = B − 2c − d, b = D − 2c − d.</li>
+            <li>Circular tie = π × (D − 2c − d) + 14d.</li>
+            <li>Number of ties = height ÷ spacing + 1. Steel % = area of bars ÷ column area × 100 (IS 456 limits: 0.8 % – 4 %).</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= SAVED / ESTIMATE ================= -->
+    <section class="view" id="view-saved" aria-labelledby="h-saved">
+      <h2 id="h-saved">Project Estimate</h2>
+      <p class="hint">Save calculations to build a combined bill of materials for your project.</p>
+      <div class="card">
+        <label>Project name<input type="text" id="projectName" placeholder="e.g. Ground floor – Sharma residence" /></label>
+      </div>
+      <div id="estimateSummary"></div>
+      <div id="savedList"></div>
+    </section>
+
+    <!-- ================= TOOLS ================= -->
+    <section class="view" id="view-tools" aria-labelledby="h-tools">
+      <h2 id="h-tools">Tools &amp; Settings</h2>
+
+      <form class="card" id="form-rates">
+        <h3>Material rates</h3>
+        <p class="hint small">Used to show the estimated cost on every result. Saved on this device.</p>
+        <div class="grid2">
+          <label>Currency symbol<input type="text" name="currency" maxlength="4" value="₹" /></label>
+          <label><span>Cement <em>per bag</em></span><input type="number" name="cement" min="0" step="any" inputmode="decimal" /></label>
+          <label><span>Sand <em>per cft</em></span><input type="number" name="sand" min="0" step="any" inputmode="decimal" /></label>
+          <label><span>Aggregate <em>per cft</em></span><input type="number" name="aggregate" min="0" step="any" inputmode="decimal" /></label>
+          <label><span>TMT steel <em>per kg</em></span><input type="number" name="steel" min="0" step="any" inputmode="decimal" /></label>
+        </div>
+        <p class="saved-note" aria-live="polite"></p>
+      </form>
+
+      <form class="card" id="form-convert">
+        <h3>Unit converter</h3>
+        <div class="grid2">
+          <label>Quantity<select name="kind"></select></label>
+          <label>Value<input type="number" name="value" step="any" inputmode="decimal" value="1" /></label>
+          <label>From<select name="from"></select></label>
+          <label>To<select name="to"></select></label>
+        </div>
+        <p class="convert-out"></p>
+      </form>
+
+      <div class="card">
+        <h3>TMT bar weight chart</h3>
+        <p class="hint small">Unit weight = d² / 162 kg/m. Standard bar length 12 m.</p>
+        <div class="table-wrap"><table class="table" id="weightTable"></table></div>
+      </div>
+
+      <div class="card">
+        <h3>Nominal mix reference (IS 456)</h3>
+        <div class="table-wrap"><table class="table" id="mixTable"></table></div>
+      </div>
+
+      <p class="disclaimer">Results are estimates for planning and ordering. Always follow the structural drawings and the engineer's bar bending schedule for construction.</p>
+    </section>
+  </main>
+
+  <nav class="bottomnav" aria-label="Main">
+    <button type="button" class="active" data-view="concrete"><span class="ico" aria-hidden="true">▦</span>Concrete</button>
+    <button type="button" data-view="steel"><span class="ico" aria-hidden="true">⫼</span>TMT Steel</button>
+    <button type="button" data-view="saved"><span class="ico" aria-hidden="true">☰</span>Estimate<span class="badge" id="savedBadge" hidden>0</span></button>
+    <button type="button" data-view="tools"><span class="ico" aria-hidden="true">⚙</span>Tools</button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/calc.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
