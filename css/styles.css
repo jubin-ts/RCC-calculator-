@@ -212,6 +212,7 @@ details.info li { margin-bottom: 4px; }
   padding: 8px 4px 10px; border: 0; background: transparent; color: var(--muted);
   font: inherit; font-size: 0.75rem; font-weight: 600; cursor: pointer;
 }
+.bottomnav button { font-size: 0.68rem; padding-left: 2px; padding-right: 2px; }
 .bottomnav .ico { font-size: 1.25rem; line-height: 1.2; }
 .bottomnav button.active { color: var(--primary); }
 .badge {
@@ -307,6 +308,47 @@ textarea { resize: vertical; }
 .boq-sheet .sign > div { padding: 6px; text-align: center; font-size: 8.5pt; }
 .boq-sheet .sign > div + div { border-left: 1px solid #000; }
 
+/* ---------- Stage certificates ---------- */
+#certBar .result-actions { margin-top: 10px; }
+#certBar .btn[disabled] { opacity: 0.45; }
+.cert-work {
+  display: grid; grid-template-columns: auto minmax(0, 3fr) minmax(0, 1.2fr) minmax(0, 1.2fr) auto; gap: 8px; align-items: end;
+  padding: 8px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;
+}
+.cert-work .sl { align-self: center; font-weight: 700; color: var(--primary); min-width: 18px; }
+.cert-work label { font-size: 0.75rem; }
+@media (max-width: 600px) {
+  .cert-work { grid-template-columns: auto minmax(0, 1.25fr) minmax(0, 1fr) auto; }
+  .cert-work input { padding: 8px; font-size: 0.95rem; }
+  .cert-work .sl { grid-column: 1; grid-row: 1; }
+  .cert-work .w-desc { grid-column: 2 / -1; grid-row: 1; }
+  .cert-work .w-desc { grid-column: 2 / 4; }
+  .cert-work .row-btns { grid-column: 4; grid-row: 1; flex-direction: column; }
+  .cert-work .w-status { grid-column: 2; grid-row: 2; }
+  .cert-work .w-amt { grid-column: 3 / 5; grid-row: 2; }
+}
+#certTotal { margin-top: 10px; }
+.cert-preview { background: #fff; color: #000; border: 1px solid var(--border); border-radius: 6px; padding: 0; overflow-x: auto; margin-bottom: 14px; }
+.cert-page { width: 100%; max-width: 720px; margin: 0 auto; padding: 36px 34px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5; }
+.cert-title { text-align: center; font-family: 'Times New Roman', Times, serif; font-size: 21px; text-decoration: underline; margin: 0 0 22px; }
+.cert-page p { margin: 0 0 10px; }
+.cert-page .indent { text-indent: 2.4em; text-align: justify; }
+.cert-page .gap { margin-top: 26px; }
+.cert-page .fields { display: flex; align-items: baseline; gap: 4px; margin-bottom: 14px; }
+.cert-page .fill { border-bottom: 1.5px dotted #000; text-align: center; font-weight: 700; padding: 0 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cert-page .fill.w2 { flex: 2; } .cert-page .fill.w3 { flex: 3; } .cert-page .fill.w4 { flex: 4; }
+.cert-page .spacer { flex: 4.5; }
+.cert-works { margin: 18px 0 8px; padding: 0 0 0 6px; list-style: none; }
+.cert-works li { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; line-height: 1.9; }
+.cert-works .no { align-self: flex-start; min-width: 1.4em; }
+.cert-works .d { flex: 1; max-width: 72%; }
+.cert-works .amt { margin-left: auto; white-space: nowrap; }
+.cert-total { text-align: right; font-weight: 700; margin-top: 18px !important; }
+.cert-total span { text-decoration: underline; }
+.cert-sign { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 110px; }
+.cert-sign .officer { text-align: center; }
+.cert-sign .od { font-size: 12px; margin-bottom: 6px; }
+
 /* ---------- Print ---------- */
 .print-only { display: none; }
 @media print {
@@ -328,5 +370,8 @@ textarea { resize: vertical; }
   .table tr { break-inside: avoid; }
   .cost-line { background: #eee; }
   .boq-sheet .sheet tr { break-inside: avoid; }
+  .cert-preview { border: 0; overflow: visible; }
+  .cert-page { max-width: none; padding: 10mm 6mm; font-size: 11.5pt; }
+  .section-title.no-print { display: none; }
   .boq-sheet thead { display: table-header-group; }
 }
