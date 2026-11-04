@@ -221,7 +221,7 @@
             </div>
             <div class="grid2">
               <label><span><span data-shape-label>Width</span> <em>m</em></span><input type="number" name="width" min="0" step="any" inputmode="decimal" value="0.23" required /></label>
-              <label class="rect-only"><span>Depth <em>m</em></span><input type="number" name="depth" min="0" step="any" inputmode="decimal" value="0.3" /></label>
+              <label class="rect-only"><span>Length <em>m</em></span><input type="number" name="depth" min="0" step="any" inputmode="decimal" value="0.3" /></label>
               <label><span>Height of column <em>m</em></span><input type="number" name="height" min="0" step="any" inputmode="decimal" placeholder="e.g. 3" required /></label>
               <label><span>Clear cover <em>cm</em></span><input type="number" name="cover" min="0" step="any" inputmode="decimal" value="4" /></label>
             </div>
@@ -259,7 +259,7 @@
           <summary>How it is calculated</summary>
           <ul>
             <li>Vertical bar length = column height + extra length (lap / footing anchorage).</li>
-            <li>Rectangular tie = 2(a + b) + 8d, with a = B − 2c − d, b = D − 2c − d.</li>
+            <li>Rectangular tie = 2(a + b) + 8d, with a = width − 2c − d, b = length − 2c − d.</li>
             <li>Circular tie = π × (D − 2c − d) + 14d.</li>
             <li>Number of ties = height ÷ spacing + 1. Steel % = area of bars ÷ column area × 100 (IS 456 limits: 0.8 % – 4 %).</li>
           </ul>

@@ -343,7 +343,7 @@
     const extra = num(p.extra, 0);
 
     req(H > 0, 'Enter column height.');
-    req(B > 0 && D > 0, shape === 'circle' ? 'Enter column diameter.' : 'Enter column width and depth.');
+    req(B > 0 && D > 0, shape === 'circle' ? 'Enter column diameter.' : 'Enter column width and length.');
     req(num(p.barCount) > 0 && num(p.barDia) > 0, 'Enter number and diameter of bars.');
     req(num(p.stirrupSpacing) > 0, 'Enter spacing of stirrups.');
     req(num(p.stirrupDia) > 0, 'Enter stirrup diameter.');
