@@ -1,7 +1,7 @@
 /* Offline cache for RCC Calculator. Bump VERSION when files change. */
-const VERSION = 'rcc-v4';
+const VERSION = 'rcc-v5';
 const FILES = [
-  './', './index.html', './css/styles.css', './js/calc.js', './js/app.js', './js/boq.js', './js/projects.js',
+  './', './index.html', './css/styles.css', './js/calc.js', './js/app.js', './js/boq.js', './js/projects.js', './js/cert.js', './js/certificates.js', './js/vendor/jspdf.umd.min.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
 ];
 

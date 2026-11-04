@@ -440,11 +440,30 @@
   }
 
   // ---------------------------------------------------------------- init
+  const listeners = [];
   function renderAll() {
     renderSelect();
     fillDetails();
     renderItems();
     renderSummary();
+    listeners.forEach((fn) => fn());
   }
+  // shared with the stage-certificate module
+  window.BOQApp = {
+    project,
+    save,
+    company,
+    toast,
+    projects: () => projects,
+    select(id) {
+      currentId = id;
+      save();
+      renderAll();
+    },
+    create(name) {
+      addProject(BOQ.newProject(name), 'New project created');
+    },
+    onProjectChange: (fn) => listeners.push(fn),
+  };
   renderAll();
 })();

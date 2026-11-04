@@ -51,7 +51,7 @@ Each result shows:
 - **IS 456 checks**: one-way vs two-way slab (Ly/Lx), maximum bar and stirrup spacing, column steel % (0.8 to 4 %), minimum number of bars, and tie diameter
 
 ### 3. Project estimates (bill of quantities)
-The **Projects** tab makes an item-wise estimate like an engineer's estimate sheet, for as many projects as you need.
+The **BOQ** tab makes an item-wise estimate like an engineer's estimate sheet, for as many projects as you need.
 - **Many projects**: create, switch, duplicate or delete projects. Each has a client name, place, type of work, date, estimate number and title.
 - **Items**: description of work, unit (m³, m², m, sq ft, cft, rft, nos, kg or LS) and rate.
 - **Measurements**: each row has Nos × Length × Width × Height/Depth. Leave a dimension empty to skip it (wall plaster = Nos × L × H). You can also type the quantity directly (e.g. 2800 sq ft).
@@ -60,6 +60,15 @@ The **Projects** tab makes an item-wise estimate like an engineer's estimate she
 - Amount = net quantity × rate. The grand total is shown in figures and **in words** (lakh / crore), with optional GST %.
 - **Print / PDF** gives a full measurement sheet with your letterhead and owner / engineer signature boxes. Also **Export CSV** (opens in Excel), **Share**, and **Save file / Open file** to back up a project or send it to another phone.
 - **Load sample** adds a worked example (residential renovation, 18 items) so you can see how it works.
+
+### 4. Stage certificates
+The **Certificate** tab makes stage certificates (first, second, third, final or completion) for any project.
+- Pick the project, tap **＋ New certificate** and fill in: Sy. No, village, ward, taluk, permit number and date, owner (For Sri), the works completed with their amounts, and the place and date.
+- The total and the amount in words are worked out for you.
+- **Fill from BOQ estimate** copies the items and amounts from the project's estimate.
+- **＋ New certificate** on an existing one starts the next stage with the same site and permit details.
+- You can edit the standard wording and the signature caption.
+- **Download PDF** gives an A4 certificate with space left for the signature and office seal. You can also **Open**, **Share** or **Print** it.
 
 ### Extra features
 - **Project estimate**: tap **＋ Add to estimate** on any result to build a combined bill of materials. It shows totals for cement, sand, aggregate, water, concrete, and steel by diameter, plus a breakdown item by item.
@@ -97,10 +106,14 @@ css/styles.css        styles (light/dark, print)
 js/calc.js            calculation engine (pure functions, unit-tested)
 js/app.js             UI logic, saving, sharing, converter
 js/boq.js             project estimate (bill of quantities) engine (pure functions, unit-tested)
-js/projects.js        Projects tab UI
+js/projects.js        BOQ tab UI
+js/cert.js            stage certificate helpers (unit-tested)
+js/certificates.js    Certificate tab UI and PDF
+js/vendor/            jsPDF 4.2.1 (MIT) for the certificate PDF
 sw.js                 offline cache
 manifest.webmanifest  install-to-home-screen metadata
 server.js             zero-dependency local server (npm start)
 tests/calc.test.js    tests for the calculations
 tests/boq.test.js     tests for the project estimate
+tests/cert.test.js    tests for stage certificates
 ```
