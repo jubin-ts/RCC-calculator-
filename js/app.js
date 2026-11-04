@@ -89,7 +89,7 @@
   const DEFAULT_RATES = { currency: '₹', cement: '', sand: '', aggregate: '', steel: '' };
   let rates = Object.assign({}, DEFAULT_RATES, store.get('rates', {}));
   const hasRates = () => ['cement', 'sand', 'aggregate', 'steel'].some((k) => Number(rates[k]) > 0);
-  const money = (n) => `${rates.currency || ''} ${fmt(n, 0)}`.trim();
+  const money = (n) => `${rates.currency || ''}\u00a0${fmt(n, 0)}`.trim();
 
   const ratesForm = $('#form-rates');
   Object.keys(DEFAULT_RATES).forEach((k) => {
@@ -176,7 +176,8 @@
   }
 
   function costBlock(q) {
-    if (!hasRates()) return `<p class="note">Add material rates in <b>Tools</b> to see the estimated cost.</p>`;
+    if (!hasRates())
+      return `<p class="note">To see the estimated cost, <button type="button" class="linkbtn" data-act="rates">add your material rates</button> on the Estimate tab.</p>`;
     const c = RCC.cost(q, rates);
     const parts = [];
     if (q.cementBags && Number(rates.cement)) parts.push(`Cement ${money(c.cement)}`);
@@ -187,8 +188,32 @@
       <p class="hint small">${parts.join(' · ')}</p>`;
   }
 
+  // ---------------------------------------------------------------- estimate state per calculator
+  let saved = store.get('saved', []);
+  const editing = {}; // kind -> id of the estimate item that was opened for editing
+  const savedSig = {}; // kind -> signature of the inputs that were last saved
+  const sig = (inputs) => JSON.stringify(inputs);
+
+  function saveButtons(kind) {
+    const item = last[kind];
+    const editItem = editing[kind] && saved.find((x) => x.id === editing[kind]);
+    const isSaved = item && savedSig[kind] === sig(item.inputs);
+    const goto = `<button type="button" class="btn ghost small" data-act="goto-estimate">View estimate →</button>`;
+    if (editItem) {
+      const head = `<p class="note edit-note">Editing estimate item: <b>${esc(itemName(editItem))}</b></p>`;
+      if (isSaved) return head + `<button type="button" class="btn primary small" disabled>✓ Saved in estimate</button>${goto}`;
+      return (
+        head +
+        `<button type="button" class="btn primary small" data-act="save" data-kind="${kind}">Update estimate item</button>` +
+        `<button type="button" class="btn ghost small" data-act="save-new" data-kind="${kind}">＋ Add as new item</button>`
+      );
+    }
+    if (isSaved) return `<button type="button" class="btn primary small" disabled>✓ Added to estimate</button>${goto}`;
+    return `<button type="button" class="btn primary small" data-act="save" data-kind="${kind}">＋ Add to estimate</button>`;
+  }
+
   const actionsBlock = (kind) => `<div class="result-actions">
-      <button type="button" class="btn primary small" data-act="save" data-kind="${kind}">＋ Add to estimate</button>
+      ${saveButtons(kind)}
       <button type="button" class="btn ghost small" data-act="share" data-kind="${kind}">Share</button>
       <button type="button" class="btn ghost small" data-act="copy" data-kind="${kind}">Copy</button>
       <button type="button" class="btn ghost small" data-act="print">Print / PDF</button>
@@ -278,6 +303,8 @@
     setTimeout(() => {
       $('#result-concrete').innerHTML = '';
       delete last.concrete;
+      delete editing.concrete;
+      delete savedSig.concrete;
       $$('.invalid', fC).forEach((el) => el.classList.remove('invalid'));
       syncConcreteForm();
     })
@@ -424,6 +451,8 @@
       setTimeout(() => {
         $('#result-' + kind).innerHTML = '';
         delete last[kind];
+        delete editing[kind];
+        delete savedSig[kind];
         $$('.invalid', f).forEach((el) => el.classList.remove('invalid'));
         f.dispatchEvent(new Event('change'));
       })
@@ -458,6 +487,7 @@
   function rerenderVisibleResults() {
     if (last.concrete) calcConcrete(true);
     Object.keys(steelDefs).forEach((k) => last[k] && calcSteel(k, true));
+    if ($('#view-saved').classList.contains('active')) renderSaved();
   }
 
   // ---------------------------------------------------------------- result actions
@@ -498,14 +528,22 @@
     const kind = btn.dataset.kind;
     const item = last[kind];
     if (act === 'print') return window.print();
-    if (!item && act !== 'print') return;
-    if (act === 'save') saveItem(kind, item);
+    if (act === 'goto-estimate') return showView('saved');
+    if (act === 'rates') {
+      showView('saved');
+      const box = $('#ratesBox');
+      box.open = true;
+      setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      return;
+    }
+    if (!item) return;
+    if (act === 'save') saveItem(kind, item, false);
+    if (act === 'save-new') saveItem(kind, item, true);
     if (act === 'share') shareText(item.text, 'RCC Calculator');
     if (act === 'copy') copyText(item.text);
   });
 
   // ---------------------------------------------------------------- saved / estimate
-  let saved = store.get('saved', []);
   const projectName = $('#projectName');
   projectName.value = store.get('project', '');
   projectName.addEventListener('input', () => store.set('project', projectName.value));
@@ -518,19 +556,30 @@
     b.hidden = saved.length === 0;
   }
 
-  function saveItem(kind, item) {
-    saved.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      kind,
-      title: item.title,
-      date: new Date().toISOString(),
-      inputs: item.inputs,
-      totals: item.totals,
-      text: item.text,
-    });
+  const itemName = (s) => s.name || s.title;
+
+  function saveItem(kind, item, asNew) {
+    const data = { kind, title: item.title, date: new Date().toISOString(), inputs: item.inputs, totals: item.totals, text: item.text };
+    const idx = !asNew && editing[kind] ? saved.findIndex((x) => x.id === editing[kind]) : -1;
+    if (idx >= 0) {
+      saved[idx] = Object.assign({}, saved[idx], data);
+      toast('Estimate item updated');
+    } else {
+      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      saved.push(Object.assign({ id }, data));
+      if (asNew) editing[kind] = id;
+      toast(`Added to estimate (${saved.length} item${saved.length > 1 ? 's' : ''})`);
+    }
     store.set('saved', saved);
+    savedSig[kind] = sig(item.inputs);
     updateBadge();
-    toast('Added to project estimate');
+    refreshResult(kind);
+  }
+
+  function refreshResult(kind) {
+    if (!last[kind]) return;
+    if (kind === 'concrete') calcConcrete(true);
+    else calcSteel(kind, true);
   }
 
   function aggregate(items) {
@@ -544,7 +593,7 @@
 
   function estimateText(t) {
     const lines = [`RCC Calculator – Project estimate${projectName.value ? `: ${projectName.value}` : ''}`, ''];
-    saved.forEach((s, i) => lines.push(`${i + 1}. [${KIND_LABEL[s.kind]}] ${s.title}`));
+    saved.forEach((s, i) => lines.push(`${i + 1}. [${KIND_LABEL[s.kind]}] ${itemName(s)}${s.name ? ` – ${s.title}` : ''}`));
     lines.push(
       '',
       `Concrete: ${fmt(t.volume, 3)} m³`,
@@ -572,8 +621,17 @@
     }
     const t = aggregate(saved);
     const dias = Object.keys(t.steelByDia).sort((a, b) => a - b);
+    const showCost = hasRates();
+    const itemRows = saved
+      .map((s, i) => {
+        const x = s.totals;
+        return `<tr><td>${i + 1}. ${esc(itemName(s))}<br /><small class="muted">${KIND_LABEL[s.kind]}${s.name ? ` · ${esc(s.title)}` : ''}</small></td>
+          <td>${fmt(x.volume, 3)}</td><td>${fmt(x.cementBags, 2)}</td><td>${fmt(x.sandCft, 2)}</td><td>${fmt(x.aggCft, 2)}</td><td>${fmt(x.waterL, 0)}</td><td>${fmt(x.steelKg || 0, 2)}</td>
+          ${showCost ? `<td>${money(RCC.cost(x, rates).total)}</td>` : ''}</tr>`;
+      })
+      .join('');
     sum.innerHTML = `<div class="card">
-      <h3 class="print-only">${esc(projectName.value || 'Project estimate')}</h3>
+      <div class="print-only print-head"><h3>${esc(projectName.value || 'Project estimate')}</h3><p>Bill of materials · ${new Date().toLocaleDateString()}</p></div>
       <div class="result-head"><h3>Bill of materials</h3><span class="meta">${saved.length} item${saved.length > 1 ? 's' : ''}</span></div>
       <div class="stats">
         ${stat('Cement', fmt(t.cementBags, 2), 'bags', `order ${Math.ceil(t.cementBags - 1e-9)} bags`, true)}
@@ -588,6 +646,12 @@
       ${dias.map((d) => `<tr><td>${d} mm</td><td>${fmt(t.steelByDia[d], 2)}</td><td>${Math.ceil(t.steelByDia[d] / (RCC.unitWeight(+d) * 12) - 1e-9)}</td></tr>`).join('')}
       </tbody></table></div>` : ''}
       ${costBlock(t)}
+      <div class="section-title">Item-wise breakdown</div>
+      <div class="table-wrap"><table class="table items-table">
+        <thead><tr><th>Item</th><th>Concrete (m³)</th><th>Cement (bags)</th><th>Sand (cft)</th><th>Agg. (cft)</th><th>Water (L)</th><th>Steel (kg)</th>${showCost ? '<th>Cost</th>' : ''}</tr></thead>
+        <tbody>${itemRows}</tbody>
+        <tfoot><tr><td>Total</td><td>${fmt(t.volume, 3)}</td><td>${fmt(t.cementBags, 2)}</td><td>${fmt(t.sandCft, 2)}</td><td>${fmt(t.aggCft, 2)}</td><td>${fmt(t.waterL, 0)}</td><td>${fmt(t.steelKg, 2)}</td>${showCost ? `<td>${money(RCC.cost(t, rates).total)}</td>` : ''}</tr></tfoot>
+      </table></div>
       <div class="result-actions">
         <button type="button" class="btn ghost small" id="estShare">Share</button>
         <button type="button" class="btn ghost small" id="estCsv">Export CSV</button>
@@ -598,10 +662,12 @@
     list.innerHTML = saved
       .map(
         (s) => `<div class="card saved-item" data-id="${s.id}">
-        <div><h4><span class="tag">${KIND_LABEL[s.kind]}</span>${esc(s.title)}</h4>
-        <p>${new Date(s.date).toLocaleString()} · cement ${fmt(s.totals.cementBags, 1)} bags${s.totals.steelKg ? ` · steel ${fmt(s.totals.steelKg, 1)} kg` : ''}</p></div>
-        <div class="btns"><button type="button" class="btn ghost small" data-open="${s.id}">Open</button>
-        <button type="button" class="btn danger small" data-del="${s.id}" aria-label="Delete">✕</button></div>
+        <div><h4><span class="tag">${KIND_LABEL[s.kind]}</span>${esc(itemName(s))}</h4>
+        <p>${s.name ? `${esc(s.title)} · ` : ''}cement ${fmt(s.totals.cementBags, 1)} bags${s.totals.steelKg ? ` · steel ${fmt(s.totals.steelKg, 1)} kg` : ''}</p>
+        <p>${new Date(s.date).toLocaleString()}</p></div>
+        <div class="btns"><button type="button" class="btn ghost small" data-open="${s.id}">Open / edit</button>
+        <button type="button" class="btn ghost small" data-rename="${s.id}" aria-label="Rename" title="Rename">✎</button>
+        <button type="button" class="btn danger small" data-del="${s.id}" aria-label="Delete" title="Delete">✕</button></div>
       </div>`
       )
       .join('');
@@ -609,10 +675,13 @@
     $('#estShare').onclick = () => shareText(estimateText(t), 'Project estimate');
     $('#estCsv').onclick = () => downloadCsv(t);
     $('#estClear').onclick = () => {
-      if (confirm('Remove all saved calculations?')) {
+      if (confirm('Remove all items from this estimate?')) {
         saved = [];
         store.set('saved', saved);
+        Object.keys(editing).forEach((k) => delete editing[k]);
+        Object.keys(savedSig).forEach((k) => delete savedSig[k]);
         renderSaved();
+        rerenderVisibleResults();
       }
     };
   }
@@ -620,15 +689,36 @@
   $('#savedList').addEventListener('click', (e) => {
     const del = e.target.closest('[data-del]');
     const open = e.target.closest('[data-open]');
+    const ren = e.target.closest('[data-rename]');
     if (del) {
-      saved = saved.filter((s) => s.id !== del.dataset.del);
+      const s = saved.find((x) => x.id === del.dataset.del);
+      if (!s || !confirm(`Remove "${itemName(s)}" from the estimate?`)) return;
+      saved = saved.filter((x) => x.id !== s.id);
+      store.set('saved', saved);
+      if (editing[s.kind] === s.id) {
+        delete editing[s.kind];
+        delete savedSig[s.kind];
+      }
+      renderSaved();
+      rerenderVisibleResults();
+      toast('Item removed');
+    } else if (ren) {
+      const s = saved.find((x) => x.id === ren.dataset.rename);
+      if (!s) return;
+      const name = prompt('Name for this item (e.g. "Ground floor slab")', itemName(s));
+      if (name === null) return;
+      s.name = name.trim() && name.trim() !== s.title ? name.trim() : '';
       store.set('saved', saved);
       renderSaved();
+      rerenderVisibleResults();
     } else if (open) {
       const s = saved.find((x) => x.id === open.dataset.open);
       if (!s) return;
+      editing[s.kind] = s.id;
+      savedSig[s.kind] = sig(s.inputs);
       if (s.kind === 'concrete') {
         fillForm(fC, s.inputs);
+        syncConcreteForm();
         showView('concrete');
         calcConcrete(false);
       } else {
@@ -637,6 +727,11 @@
         showSteel(s.kind);
         calcSteel(s.kind, false);
       }
+      // the form may normalise values, so remember what is actually shown
+      if (last[s.kind]) {
+        savedSig[s.kind] = sig(last[s.kind].inputs);
+        refreshResult(s.kind);
+      }
     }
   });
 
@@ -644,7 +739,7 @@
     const q = (v) => `"${String(v).replace(/"/g, '""')}"`;
     const rows = [['#', 'Type', 'Description', 'Concrete (m3)', 'Cement (bags)', 'Sand (cft)', 'Aggregate (cft)', 'Water (L)', 'Steel (kg)']];
     saved.forEach((s, i) =>
-      rows.push([i + 1, KIND_LABEL[s.kind], s.title, s.totals.volume.toFixed(3), s.totals.cementBags.toFixed(2), s.totals.sandCft.toFixed(2), s.totals.aggCft.toFixed(2), s.totals.waterL.toFixed(0), (s.totals.steelKg || 0).toFixed(2)])
+      rows.push([i + 1, KIND_LABEL[s.kind], s.name ? `${s.name} (${s.title})` : s.title, s.totals.volume.toFixed(3), s.totals.cementBags.toFixed(2), s.totals.sandCft.toFixed(2), s.totals.aggCft.toFixed(2), s.totals.waterL.toFixed(0), (s.totals.steelKg || 0).toFixed(2)])
     );
     rows.push(['', '', 'TOTAL', t.volume.toFixed(3), t.cementBags.toFixed(2), t.sandCft.toFixed(2), t.aggCft.toFixed(2), t.waterL.toFixed(0), t.steelKg.toFixed(2)]);
     rows.push([]);

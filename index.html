@@ -270,21 +270,14 @@
     <!-- ================= SAVED / ESTIMATE ================= -->
     <section class="view" id="view-saved" aria-labelledby="h-saved">
       <h2 id="h-saved">Project Estimate</h2>
-      <p class="hint">Save calculations to build a combined bill of materials for your project.</p>
-      <div class="card">
-        <label>Project name<input type="text" id="projectName" placeholder="e.g. Ground floor – Sharma residence" /></label>
+      <p class="hint">Run any calculation and tap <b>＋ Add to estimate</b>. Everything you add is totalled here into one bill of materials.</p>
+      <div class="card no-print">
+        <label><span>Project name</span><input type="text" id="projectName" placeholder="e.g. Ground floor – Sharma residence" /></label>
       </div>
-      <div id="estimateSummary"></div>
-      <div id="savedList"></div>
-    </section>
-
-    <!-- ================= TOOLS ================= -->
-    <section class="view" id="view-tools" aria-labelledby="h-tools">
-      <h2 id="h-tools">Tools &amp; Settings</h2>
-
-      <form class="card" id="form-rates">
-        <h3>Material rates</h3>
-        <p class="hint small">Used to show the estimated cost on every result. Saved on this device.</p>
+      <form class="card no-print" id="form-rates">
+        <details id="ratesBox">
+          <summary>Material rates (for cost estimate)</summary>
+          <p class="hint small">Enter your local rates. The cost is shown on every result and on this estimate. Saved on this device.</p>
         <div class="grid2">
           <label>Currency symbol<input type="text" name="currency" maxlength="4" value="₹" /></label>
           <label><span>Cement <em>per bag</em></span><input type="number" name="cement" min="0" step="any" inputmode="decimal" /></label>
@@ -293,7 +286,21 @@
           <label><span>TMT steel <em>per kg</em></span><input type="number" name="steel" min="0" step="any" inputmode="decimal" /></label>
         </div>
         <p class="saved-note" aria-live="polite"></p>
+        </details>
       </form>
+      <div id="estimateSummary"></div>
+      <div id="savedList" class="no-print"></div>
+    </section>
+
+    <!-- ================= TOOLS ================= -->
+    <section class="view" id="view-tools" aria-labelledby="h-tools">
+      <h2 id="h-tools">Tools &amp; Settings</h2>
+
+
+      <div class="card">
+        <h3>Material rates</h3>
+        <p class="hint small">Rates for the cost estimate are set on the Estimate tab. <button type="button" class="linkbtn" data-act="rates">Edit material rates →</button></p>
+      </div>
 
       <form class="card" id="form-convert">
         <h3>Unit converter</h3>
