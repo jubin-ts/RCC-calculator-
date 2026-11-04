@@ -1,7 +1,7 @@
 /* Offline cache for RCC Calculator. Bump VERSION when files change. */
-const VERSION = 'rcc-v3';
+const VERSION = 'rcc-v4';
 const FILES = [
-  './', './index.html', './css/styles.css', './js/calc.js', './js/app.js',
+  './', './index.html', './css/styles.css', './js/calc.js', './js/app.js', './js/boq.js', './js/projects.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
 ];
 
